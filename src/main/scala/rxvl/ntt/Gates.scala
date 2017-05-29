@@ -1,37 +1,65 @@
 package rxvl.ntt
 
-object Gates {
-  import shapeless.Nat
-  import shapeless.nat.{_16, _2, _3, _8}
-  import shapeless.ops.nat.ToInt
-  import scalaz._
-  import Scalaz._
+import shapeless.Nat
+import shapeless.nat.{_16, _2, _3, _8}
+import shapeless.ops.nat.ToInt
+import scalaz._
+import Scalaz._
 
-  case class Word[Size <: Nat : ToInt, A](bits: Vector[A]) {
-    val size: Int = ToInt[ Size ].apply()
-    require(size == bits.size)
-  }
-  object Word {
-    def apply[Size <: Nat : ToInt](b: Boolean): Word[Size, Boolean] =
-      Word[Size, Boolean](Vector.fill(ToInt[Size].apply())(b))
-    implicit def functor[Size <: Nat : ToInt]: Functor[({type l[a] = Word[Size, a]})#l] =
-      new Functor[({type l[a] = Word[Size, a]})#l] {
-        def map[ A, B ](
+
+case class Word[Size <: Nat : ToInt, A](bits: Vector[A]) {
+  val size: Int = ToInt[ Size ].apply()
+  require(size == bits.size)
+
+  override def toString: String = bits
+    .map {case true => "1"; case _ => "0"}
+    .mkString
+}
+
+object Word {
+  def apply[Size <: Nat : ToInt](b: Boolean): Word[Size, Boolean] =
+    Word[Size, Boolean](Vector.fill(ToInt[Size].apply())(b))
+
+  implicit def functor[Size <: Nat : ToInt]: Functor[({type l[a] = Word[Size, a]})#l] =
+    new Functor[({type l[a] = Word[Size, a]})#l] {
+      def map[ A, B ](
+        fa: Word[ Size, A ]
+      )(
+        f: ( A ) => B
+      ): Word[ Size, B ] = Word[Size, B](fa.bits.map(f))
+    }
+
+  implicit def zip[Size <: Nat : ToInt]: Zip[({type l[a] = Word[Size, a]})#l] =
+    new Zip[({type l[a] = Word[Size, a]})#l] {
+      def zip[ A, B ](
+        a: => Word[ Size, A ],
+        b: => Word[ Size, B ]
+      ): Word[ Size, (A, B) ] = Word[Size, (A, B)](a.bits.zip(b.bits))
+    }
+
+}
+
+
+object Gates {
+
+
+    implicit def foldable[Size <: Nat : ToInt]: Foldable[({type l[a] = Word[Size, a]})#l] =
+      new Foldable[({type l[a] = Word[Size, a]})#l] {
+        def foldMap[ A, B ](
           fa: Word[ Size, A ]
         )(
           f: ( A ) => B
-        ): Word[ Size, B ] = Word[Size, B](fa.bits.map(f))
-      }
+        )(
+          implicit F: Monoid[ B ]
+        ): B = fa.bits.foldMap(f)
 
-    implicit def zip[Size <: Nat : ToInt]: Zip[({type l[a] = Word[Size, a]})#l] =
-      new Zip[({type l[a] = Word[Size, a]})#l] {
-        def zip[ A, B ](
-          a: => Word[ Size, A ],
-          b: => Word[ Size, B ]
-        ): Word[ Size, (A, B) ] = Word[Size, (A, B)](a.bits.zip(b.bits))
+        def foldRight[ A, B ](
+          fa: Word[ Size, A ],
+          z: => B
+        )(
+          f: (A, => B) => B
+        ): B = fa.bits.foldRight(z)((a, b) => f(a, b))
       }
-
-    }
 
   def NAnd( in1: Boolean, in2: Boolean ): Boolean = !( in1 && in2 )
 
