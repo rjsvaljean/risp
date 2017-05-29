@@ -22,11 +22,11 @@ object Parser {
   def DefFParser[A](pa: => P[A]): P[DefF[A]] = {
     val name = P(CharIn('a' to 'z').!.map(_.toString))
     P(("(define " ~ name ~ " " ~ pa ~ ")").map {
-      case (name, body) => DefF(name, body)
+      case (n, body) => DefF(n, body)
     })
   }
   def AppFParser[A](pa: => P[A]): P[AppF[A]] = {
-    val fnName = P(CharIn('a' to 'z').!.map(_.toString))
+    val fnName = P(CharIn('a' to 'z').rep.!.map(_.toString))
     P(("(" ~ fnName ~ " " ~ pa.rep(sep = " ") ~ ")").map {
       case (name, args) => AppF(name, args.toVector)
     })
