@@ -8,6 +8,8 @@ object Parser {
 
   val NumberFParser: P[NumberF] =
     P(CharIn('0' to '9').!.map(i => NumberF(i.toInt)))
+  val BoolFParser: P[BoolF] =
+    P(("true".!.map(_ => true) | "true".!.map(_ => false)).map(BoolF(_)))
   val SymbolFParser: P[SymbolF] =
     P(CharIn('a' to 'z').!.map(s => SymbolF(s)))
   def IfExprFParser[A](pa: => P[A]): P[IfF[A]] =
@@ -32,6 +34,7 @@ object Parser {
     })
   }
   def pfp[A](pa: => P[A]): P[ExprF[A]] = NumberFParser |
+      BoolFParser |
       SymbolFParser |
       IfExprFParser(pa) |
       FnFParser(pa) |

@@ -10,6 +10,7 @@ object model {
   }
 
   case class NumberF(i: Int) extends ExprF[Nothing]
+  case class BoolF(b: Boolean) extends ExprF[Nothing]
 
   case class SymbolF(name: String) extends ExprF[Nothing]
 
@@ -41,6 +42,7 @@ object model {
       f: ( A ) => B
     ): ExprF[ B ] = fa match {
       case NumberF( i ) => NumberF(i)
+      case BoolF( i ) => BoolF(i)
       case SymbolF( name ) => SymbolF(name)
       case IfF( cond, ifTrue, ifFalse ) =>
         IfF(f(cond), f(ifTrue), f(ifFalse))
@@ -57,6 +59,7 @@ object model {
 
   object Expr {
     def Number(i: Int): Expr = Fix[ExprF](NumberF(i))
+    def Bool(b: Boolean): Expr = Fix[ExprF](BoolF(b))
 
     def Symbol(name: String): Expr =
       Fix[ExprF](SymbolF(name))
