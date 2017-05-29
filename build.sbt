@@ -3,7 +3,13 @@ name := "risp"
 scalaVersion := "2.12.2"
 
 val circeVersion = "0.7.0"
+
 val scalaTestVersion = "3.0.1"
+
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots")
+)
 
 val circeDeps = {
 
@@ -20,7 +26,8 @@ libraryDependencies ++= Seq(
   "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
   "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
   "co.fs2" %% "fs2-core" % "0.9.6",
-  "co.fs2" %% "fs2-io" % "0.9.6"
+  "co.fs2" %% "fs2-io" % "0.9.6",
+  "com.chuusai" %% "shapeless" % "2.3.2"
 )
 
 scalacOptions += "-Ypartial-unification"
