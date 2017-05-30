@@ -23,11 +23,12 @@ val circeDeps = {
 libraryDependencies ++= Seq(
   "com.slamdata" %% "matryoshka-core" % "0.18.3",
   "com.lihaoyi" %% "fastparse" % "0.4.2",
-  "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
-  "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
   "co.fs2" %% "fs2-core" % "0.9.6",
   "co.fs2" %% "fs2-io" % "0.9.6",
-  "com.chuusai" %% "shapeless" % "2.3.2"
+  "com.chuusai" %% "shapeless" % "2.3.2",
+  "org.scalactic" %% "scalactic" % scalaTestVersion % "test",
+  "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+  "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
 )
 
 scalacOptions += "-Ypartial-unification"
