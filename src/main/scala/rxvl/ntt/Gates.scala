@@ -37,6 +37,15 @@ object Word {
       ): Word[ Size, (A, B) ] = Word[Size, (A, B)](a.bits.zip(b.bits))
     }
 
+  implicit def unzip[Size <: Nat : ToInt]: Unzip[({type l[a] = Word[Size, a]})#l] =
+    new Unzip[({type l[a] = Word[Size, a]})#l] {
+      def unzip[A, B](a: Word[Size, (A, B)]) = {
+        val (as, bs) = a.bits.unzip
+        (Word[Size, A](as), Word[Size, B](bs))
+      }
+    }
+
+
 }
 
 
