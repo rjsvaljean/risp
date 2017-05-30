@@ -30,21 +30,30 @@ object Memory {
 
   type Byte16 = Word[_16, Boolean]
   type Address = Word[_8, Boolean]
-  type RAMState = Map[Address, Byte16]
+  type Register = State[Byte16, Byte16]
+  type RAMState = Map[Address, Register]
   val Null = Word[_16](false)
+  val NullRegister: Register = State.gets(identity[Byte16])
 
-  def Bit16(in: Byte16, load: Boolean): State[Byte16, Byte16] =
+  def Bit16(in: Byte16, load: Boolean): Register =
     State { w: Byte16 =>
       val x = in.map(Bit(_, load))
       val y = x.fzip(w).map { case (_x, _w) => _x.run(_w) }
       y.unfzip
     }
 
-  def RAM(load: Boolean, in: Byte16, address: Address): State[RAMState, Byte16] =
-    if (load)
-      State.modify((_: RAMState) + (address -> in)).map(_ => Null)
+  def RAM(load: Boolean,
+          in: Byte16,
+          address: Address
+  ): State[RAMState, Byte16] = {
+    val x = if (load)
+      State.modify(
+        (_: RAMState) + (address -> Bit16(in, load))
+      ).map(_ => NullRegister)
     else
-      State.gets((_: RAMState).getOrElse(address, Null))
+      State.gets((_: RAMState).getOrElse(address, NullRegister))
+    x.map(_.run(Null)._1)
+  }
 
   def testBit = List(
     (true, true),
