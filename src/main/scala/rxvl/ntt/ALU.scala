@@ -36,10 +36,11 @@ object ALU {
 
 
   import ArithematicGates._
+  import Memory.Byte16
 
   type Zero = Boolean
   type Negative = Boolean
-  type Out = Word[_16, Boolean]
+  type Out = Byte16
 
   def apply(
     x: Word[_16, Boolean],
@@ -98,7 +99,7 @@ object ALU {
   case object OrOp extends Op
 
 
-  private def test( op: Op, x: Word[ shapeless.nat._16, Zero ], y: Word[ shapeless.nat._16, Zero ] ) = {
+  def test( op: Op, x: Byte16, y: Byte16 ): Byte16 = {
 //    println(x)
 //    println(y)
     val (out, _, _) = op match {
