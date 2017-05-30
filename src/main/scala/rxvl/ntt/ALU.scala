@@ -78,51 +78,51 @@ object ALU {
   }
 
   sealed trait Op
-  case object Plus extends Op
-  case object XMinusY extends Op
-  case object YMinusX extends Op
   case object Zero extends Op
   case object One extends Op
   case object MinusOne extends Op
   case object JustX extends Op
   case object JustY extends Op
-  case object JustNegX extends Op
-  case object JustNegY extends Op
   case object JustNotX extends Op
   case object JustNotY extends Op
+  case object JustNegX extends Op
+  case object JustNegY extends Op
   case object IncX extends Op
   case object IncY extends Op
   case object DecX extends Op
   case object DecY extends Op
+  case object Plus extends Op
+  case object XMinusY extends Op
+  case object YMinusX extends Op
   case object AndOp extends Op
   case object OrOp extends Op
 
 
   private def test( op: Op, x: Word[ shapeless.nat._16, Zero ], y: Word[ shapeless.nat._16, Zero ] ) = {
-    println(x)
-    println(y)
+//    println(x)
+//    println(y)
     val (out, _, _) = op match {
       case Zero =>     apply( x, y, zx = true, nx = false, zy = true, ny = false, f = true, no = false )
       case One =>      apply( x, y, zx = true, nx = true, zy = true, ny = true, f = true, no = true )
       case MinusOne => apply( x, y, zx = true, nx = true, zy = true, ny = false, f = true, no = false )
       case JustX =>    apply( x, y, zx = false, nx = false, zy = true, ny = true, f = false, no = false )
       case JustY =>    apply( x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = false )
-      case JustNotX => apply( x, y, zx = false, nx = true, zy = true, ny = true, f = false, no = false )
-      case JustNotY => apply( x, y, zx = false, nx = false, zy = true, ny = true, f = false, no = true )
-      case JustNegX => apply( x, y, zx = true, nx = true, zy = true, ny = true, f = false, no = true )
-      case JustNegY => apply( x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = true )
-      case IncX =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
-      case IncY =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
-      case DecX =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
-      case DecY =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
+      case JustNotX => apply( x, y, zx = false, nx = false, zy = true, ny = false, f = true, no = true )
+      case JustNotY => apply( x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = true )
+      case JustNegX => apply( x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = true )
+      case JustNegY => apply( x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = true )
+      case IncX =>     apply( x, y, zx = false, nx = true, zy = true, ny = true, f = true, no = true )
+      case IncY =>     apply( x, y, zx = true, nx = true, zy = false, ny = true, f = true, no = true )
+      case DecX =>     apply( x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = false )
+      case DecY =>     apply( x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = false )
       case Plus =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = true, no = false )
       case XMinusY =>  apply( x, y, zx = false, nx = true, zy = false, ny = false, f = true, no = true )
       case YMinusX =>  apply( x, y, zx = false, nx = false, zy = false, ny = true, f = true, no = true )
       case AndOp =>    apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
-      case OrOp =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
+      case OrOp =>     apply( x, y, zx = false, nx = true, zy = false, ny = true, f = false, no = true )
     }
-    println(Vector.fill(16)('-').mkString)
-    println(out)
+//    println(Vector.fill(16)('-').mkString)
+//    println(out)
     out
   }
 
