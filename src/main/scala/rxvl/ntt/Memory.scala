@@ -57,6 +57,7 @@ object Memory {
 
   val addr1 = Word[_8](true)
   val addr2 = Word[_8](false)
+  val addr3 = Word[_8, Boolean](false +: Vector.fill(7)(true))
   val sixteen = toBin(16)
   val thirtyTwo = toBin(32)
   val fifteen = toBin(15)
