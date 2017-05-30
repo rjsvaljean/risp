@@ -12,6 +12,6 @@ class ParserSpec
   behavior of "Parser"
 
   it should "1" in {
-    Parser.parse("1") should be(Expr.Number(1))
+    Parser.parse("1").get.value should be(Expr.Number(1))
   }
 }
