@@ -28,25 +28,23 @@ object Memory {
     State.gets(Mux(load, _: Boolean, in)).flatMap(DFF)
   }
 
-  def Bit16(
-    in: Word[_16, Boolean],
-    load: Boolean
-  ): State[Word[_16, Boolean], Word[_16, Boolean]] = State { w: Word[_16, Boolean] =>
-    val x = in.map(Bit(_, load))
-    val y = x.fzip(w).map { case (_x, _w) => _x.run(_w) }
-    y.unfzip
-  }
+  type Byte16 = Word[_16, Boolean]
+  type Address = Word[_8, Boolean]
+  type RAMState = Map[Address, Byte16]
+  val Null = Word[_16](false)
 
-  def RAM(
-    load: Boolean,
-    in: Word[_16, Boolean],
-    address: Word[_8, Boolean]
-  ): State[
-    Map[Word[_8, Boolean], Word[_16, Boolean]],
-    Word[_16, Boolean]
-  ] =
-    if (load) State.modify((_: Map[Word[_8, Boolean], Word[_16, Boolean]]) + (address -> in)).map(_ => in)
-    else State.gets((_: Map[Word[_8, Boolean], Word[_16, Boolean]]).getOrElse(address, Word[_16](false)))
+  def Bit16(in: Byte16, load: Boolean): State[Byte16, Byte16] =
+    State { w: Byte16 =>
+      val x = in.map(Bit(_, load))
+      val y = x.fzip(w).map { case (_x, _w) => _x.run(_w) }
+      y.unfzip
+    }
+
+  def RAM(load: Boolean, in: Byte16, address: Address): State[RAMState, Byte16] =
+    if (load)
+      State.modify((_: RAMState) + (address -> in)).map(_ => Null)
+    else
+      State.gets((_: RAMState).getOrElse(address, Null))
 
   def testBit = List(
     (true, true),
