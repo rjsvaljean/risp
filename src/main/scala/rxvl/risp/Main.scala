@@ -10,7 +10,7 @@ object Main {
       val parsed = Parser.parse( line )
       println(parsed.fold(
         (a, b, c) => (a, b, c).toString,
-        (e, _) => Evaluator.evalE(e).toString
+        (e, _) => Compiler.evalE(e).toString
       ))
       loop()
     }
