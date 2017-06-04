@@ -33,8 +33,7 @@ object CPU {
   }
 
   def runScript(script: Seq[Op]): Unit =
-    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(Map())._2
-
+    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(RAMState())._2
 
   def test = runScript(Seq(
     Put(addr1, thirtyTwo),

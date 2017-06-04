@@ -10,9 +10,12 @@ object Memory {
   case object Tock extends ClockState
 
   import shapeless.nat._
-  import scalaz._
-  import Scalaz._
+  import scalaz.State
+  import scalaz.syntax.functor.ToFunctorOps
   import scalaz.syntax.unzip.ToUnzipPairOps
+  import scalaz.syntax.traverse.ToTraverseOps
+  import scalaz.std.list.listInstance
+  import scalaz.syntax.zip.ToZipOps
   import Gates._
 
   val clock = Stream.iterate[ClockState](Tick) {
@@ -31,29 +34,29 @@ object Memory {
   type Byte16 = Word[_16, Boolean]
   type Address = Word[_8, Boolean]
   type Register = State[Byte16, Byte16]
-  type RAMState = Map[Address, Register]
-  val Null = Word[_16](false)
+  case class RAMState(private val repr: Map[Address, Byte16] = Map().withDefaultValue(Null)) {
+    def updated(address: Address, newValue: Byte16) = copy(repr = repr.updated(address, newValue))
+    def apply(addr: Address): Byte16 = repr(addr)
+  }
+  val Null: Byte16 = Word[_16](false)
   val NullRegister: Register = State.gets(identity[Byte16])
 
   def Bit16(in: Byte16, load: Boolean): Register =
     State { w: Byte16 =>
-      val x = in.map(Bit(_, load))
-      val y = x.fzip(w).map { case (_x, _w) => _x.run(_w) }
+      val x: Word[_16, State[Boolean, Boolean]] = in.map(Bit(_, load))
+      val y: Word[_16, Tuple2[Boolean, Boolean]] = x.fzip(w).map { case (_x, _w) => _x.run(_w) }
       y.unfzip
     }
 
   def RAM(load: Boolean,
           in: Byte16,
           address: Address
-  ): State[RAMState, Byte16] = {
-    val x = if (load)
-      State.modify(
-        (_: RAMState) + (address -> Bit16(in, load))
-      ).map(_ => NullRegister)
-    else
-      State.gets((_: RAMState).getOrElse(address, NullRegister))
-    x.map(_.run(Null)._1)
-  }
+  ): State[RAMState, Byte16] = for {
+    ramState <- State.get[ RAMState ]
+    out <- Bit16(in, load).xmap(
+      ramState.updated(address, _))(
+      (_: RAMState)(address))
+  } yield out
 
   def testBit = List(
     (true, true),
@@ -77,7 +80,7 @@ object Memory {
     (false, Word[_16](true), addr1),
     (true, fifteen, addr1),
     (false, Word[_16](true), addr1)
-  ).map((RAM _).tupled).sequence.run(Map())._2.map(fromBin)
+  ).map((RAM _).tupled).sequence.run(RAMState())._2.map(fromBin)
 
   def testBit16 = List(
     (Word[_16](true), true),
