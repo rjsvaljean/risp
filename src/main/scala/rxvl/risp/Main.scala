@@ -1,7 +1,6 @@
 package rxvl.risp
 
 object Main {
-  import model._
   def main(args: Array[String]): Unit = {
 
     def loop(): Unit = {
@@ -10,7 +9,7 @@ object Main {
       val parsed = Parser.parse(line)
       println(parsed.fold(
         (a, b, c) => (a, b, c).toString,
-        (e, _) => Compiler.evalE(e).toString
+        (e, _) => Evaluator.evalE(e).toString
       ))
       loop()
     }

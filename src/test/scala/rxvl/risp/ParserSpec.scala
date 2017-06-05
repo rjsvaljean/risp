@@ -1,12 +1,12 @@
 package rxvl.risp
 
 import org.scalatest.words.ShouldVerb
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{ FlatSpec, Matchers }
 
 import model._
 
 class ParserSpec
-  extends FlatSpec
+    extends FlatSpec
     with Matchers
     with ShouldVerb {
   behavior of "Parser"

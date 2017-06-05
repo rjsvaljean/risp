@@ -3,7 +3,7 @@ package rxvl.risp
 object Evaluator {
   import model._
   import matryoshka._
-  import scalaz.{ State, Traverse }
+  import scalaz.State
   import scalaz.std.vector.vectorInstance
   import scalaz.syntax.traverse.ToTraverseOpsUnapply
 

@@ -2,6 +2,14 @@ name := "risp"
 
 scalaVersion := "2.12.2"
 
+scalacOptions ++= Seq(
+  "-feature",
+  "-deprecation",
+  "-language:higherKinds",
+  "-Yrangepos",
+  "-Ywarn-unused:imports"
+)
+
 val circeVersion = "0.7.0"
 
 val scalaTestVersion = "3.0.1"

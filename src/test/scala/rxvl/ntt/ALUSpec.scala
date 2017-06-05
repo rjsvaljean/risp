@@ -2,11 +2,12 @@ package rxvl.ntt
 
 import org.scalatest._
 import org.scalacheck._
+import org.scalactic.anyvals._
 import org.scalatest.prop.PropertyChecks
-import rxvl.ntt.ALU._
+import rxvl.ntt.BinHelpers.{ fromBin, toBin }
 
 class ALUSpec
-  extends FlatSpec
+    extends FlatSpec
     with Matchers
     with PropertyChecks {
   import ALU._
@@ -14,23 +15,31 @@ class ALUSpec
   behavior of "ALU"
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
-    PropertyCheckConfig(workers = 4, minSuccessful = 5000, maxDiscarded = 0)
+    PropertyCheckConfiguration(
+      minSuccessful = PosInt(5000),
+      maxDiscardedFactor = PosZDouble(0.00001),
+      minSize = PosZInt(1000),
+      sizeRange = PosZInt(100),
+      workers = PosInt(4)
+    )
 
-  implicit val ar: Arbitrary[Op] = Arbitrary(Gen.oneOf(Seq(
+  val ops: Seq[Op] = Seq(
     Zero, One, MinusOne, JustX, JustY, JustNotX,
     JustNotY, JustNegX, JustNegY, IncX, IncY,
     DecX, DecY, Plus, XMinusY, YMinusX, AndOp,
     OrOp
-  )))
+  )
 
   implicit val signed16BitInts: Arbitrary[Int] = {
     val max = Math.pow(2, 14).toInt
     Arbitrary(Gen.choose(max * -1, max))
   }
 
-  it should "compute all the things" in {
-    forAll { (x: Int, y: Int, op: Op) =>
-      ALU.testD(op)(x, y) should be(getF(op)(x, y))
+  ops.foreach { op =>
+    it should s"compute $op" in {
+      forAll { (x: Int, y: Int) =>
+        testD(op)(x, y) should be(getF(op)(x, y))
+      }
     }
   }
 
@@ -56,4 +65,7 @@ class ALUSpec
       case OrOp => (x, y) => x | y
     }
   }
+
+  def testD(op: Op)(xInt: Int, yInt: Int): Int =
+    fromBin(ALU.run(op, toBin(xInt), toBin(yInt)))
 }

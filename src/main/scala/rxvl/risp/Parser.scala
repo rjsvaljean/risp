@@ -1,7 +1,5 @@
 package rxvl.risp
 
-import matryoshka.data.Fix
-
 object Parser {
   import fastparse.all._
   import model._

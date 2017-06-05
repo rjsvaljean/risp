@@ -1,9 +1,11 @@
 package rxvl.ntt
 
-import Gates._
+import LogicalGates._
 import shapeless.nat._
-import scalaz._
-import scalaz.Scalaz._
+import scalaz.syntax.foldable._
+
+import ArithematicGates._
+import Memory.Byte16
 
 object ALU {
   // This file is part of www.nand2tetris.org
@@ -32,9 +34,6 @@ object ALU {
   // if (ny==1) set y = ~y       // bitwise "not"
   // if (f==1)  set out = x + y  if (f==0)  set out = x & y
   // if (no==1) set out = ~out   // bitwise "not"
-
-  import ArithematicGates._
-  import Memory.Byte16
 
   type Zero = Boolean
   type Negative = Boolean
@@ -96,9 +95,7 @@ object ALU {
   case object AndOp extends Op
   case object OrOp extends Op
 
-  def test(op: Op, x: Byte16, y: Byte16): Byte16 = {
-    //    println(x)
-    //    println(y)
+  def run(op: Op, x: Byte16, y: Byte16): Byte16 = {
     val (out, _, _) = op match {
       case Zero => apply(x, y, zx = true, nx = false, zy = true, ny = false, f = true, no = false)
       case One => apply(x, y, zx = true, nx = true, zy = true, ny = true, f = true, no = true)
@@ -119,15 +116,7 @@ object ALU {
       case AndOp => apply(x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false)
       case OrOp => apply(x, y, zx = false, nx = true, zy = false, ny = true, f = false, no = true)
     }
-    //    println(Vector.fill(16)('-').mkString)
-    //    println(out)
     out
   }
-
-  def testB(op: Op)(xStr: String, yStr: String): String =
-    test(op, toBin(xStr), toBin(yStr)).toString
-
-  def testD(op: Op)(xInt: Int, yInt: Int): Int =
-    fromBin(test(op, toBin(xInt), toBin(yInt)))
 
 }
