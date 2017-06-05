@@ -3,7 +3,7 @@ package rxvl.risp
 object Evaluator {
   import model._
   import matryoshka._
-  import scalaz.{State, Traverse}
+  import scalaz.{ State, Traverse }
   import scalaz.std.vector.vectorInstance
   import scalaz.syntax.traverse.ToTraverseOpsUnapply
 
@@ -15,45 +15,43 @@ object Evaluator {
   type Memo[T] = State[Map[String, Int], T]
 
   def eval: Algebra[ExprF, Memo[EvalResult]] = {
-    case NumberF( i ) => State.init.map(_ => IResult(i))
-    case BoolF( b ) => State.init.map(_ => BResult(b))
-    case SymbolF( name ) => State.gets(s => IResult(s.apply(name)))
-    case IfF( cond, ifTrue, ifFalse ) =>
+    case NumberF(i) => State.init.map(_ => IResult(i))
+    case BoolF(b) => State.init.map(_ => BResult(b))
+    case SymbolF(name) => State.gets(s => IResult(s.apply(name)))
+    case IfF(cond, ifTrue, ifFalse) =>
       cond.flatMap {
         case Error(_) => cond
         case BResult(true) => ifTrue
         case BResult(false) => ifFalse
         case IResult(x) => State.gets(_ => Error(s"$x wasn't a boolean"))
       }
-    case DefF( label, expr ) => for {
+    case DefF(label, expr) => for {
       result <- expr
       _ <- result match {
         case IResult(r) => State.modify[Map[String, Int]](_ + (label -> r))
         case _ => expr
       }
     } yield result
-    case AppF( "begin", args ) =>
+    case AppF("begin", args) =>
       args.sequence[Memo, EvalResult].map(_.last)
-    case AppF( "add", args ) =>
+    case AppF("add", args) =>
       args.sequence[Memo, EvalResult].map(a =>
-        IResult(a.map { case IResult(i) => i; case _ => ??? }.sum)
-      )
-    case AppF( "lt", args ) =>
+        IResult(a.map { case IResult(i) => i; case _ => ??? }.sum))
+    case AppF("lt", args) =>
       args.sequence[Memo, EvalResult].map(a => {
-        val Vector(a1, a2) = a.map { case IResult( i ) => i; case _ => ??? }
-        BResult( a1 < a2 )
+        val Vector(a1, a2) = a.map { case IResult(i) => i; case _ => ??? }
+        BResult(a1 < a2)
       })
-    case AppF( "eq", args ) =>
+    case AppF("eq", args) =>
       args.sequence[Memo, EvalResult].map(a => {
-        val Vector(a1, a2) = a.map { case IResult( i ) => i; case _ => ??? }
-        BResult( a1 == a2 )
+        val Vector(a1, a2) = a.map { case IResult(i) => i; case _ => ??? }
+        BResult(a1 == a2)
       })
-    case AppF( "mult", args ) =>
+    case AppF("mult", args) =>
       args.sequence[Memo, EvalResult].map(a =>
-        IResult(a.map { case IResult(i) => i; case _ => ??? }.product)
-      )
-    case FnF( _, _ ) => ???
-    case AppF( _, args ) => ???
+        IResult(a.map { case IResult(i) => i; case _ => ??? }.product))
+    case FnF(_, _) => ???
+    case AppF(_, args) => ???
   }
 
   def evalE(e: Expr) = {

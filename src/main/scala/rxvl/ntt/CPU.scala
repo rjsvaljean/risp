@@ -2,7 +2,7 @@ package rxvl.ntt
 
 object CPU {
   import Memory._
-  import ArithematicGates.{toBin, fromBin}
+  import ArithematicGates.{ toBin, fromBin }
   import scalaz._
   import Scalaz._
 
@@ -27,20 +27,17 @@ object CPU {
         RAM512(load = false, Null, x),
         RAM512(load = false, Null, y)
       )(ALU.test(op, _, _)).flatMap(o =>
-        RAM512(load = true, o, addr).map(_ => ())
-      )
+          RAM512(load = true, o, addr).map(_ => ()))
 
   }
 
-  val initRAMState = Vector.fill(8)(Vector.fill(8)(Vector.fill(8)(Null)))
-
   def runScript(script: Seq[Op]): Unit =
-    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(initRAMState)._2
+    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(RAM512Init)._2
 
-//  def test = runScript(Seq(
-//    Put(addr1, thirtyTwo),
-//    Put(addr2, fifteen),
-//    Calculate(ALU.Plus, addr1, addr2, addr3),
-//    Get(addr3)
-//  ))
+  //  def test = runScript(Seq(
+  //    Put(addr1, thirtyTwo),
+  //    Put(addr2, fifteen),
+  //    Calculate(ALU.Plus, addr1, addr2, addr3),
+  //    Get(addr3)
+  //  ))
 }

@@ -47,17 +47,18 @@ object Memory {
   ): State[F[S], F[A]] =
     State(
       _.fzip(sts)
-       .map { case (in, st) => st.run(in) }
-       .unfzip
+      .map { case (in, st) => st.run(in) }
+      .unfzip
     )
 
   def Register(in: Byte16, load: Boolean): Register = {
     runAll(in.map(Bit(_, load)))
   }
 
-  def RAM8(load: Boolean,
-           in: Byte16,
-           address: Word[_3, Boolean]
+  def RAM8(
+    load: Boolean,
+    in: Byte16,
+    address: Word[_3, Boolean]
   ): State[Vector[Byte16], Byte16] = State { s =>
     val (l0, l1, l2, l3, l4, l5, l6, l7) = DMux8Way(address, load)
 
@@ -72,16 +73,19 @@ object Memory {
 
     (
       Vector(ns0, ns1, ns2, ns3, ns4, ns5, ns6, ns7),
-      Mux8Way16( address, o0, o1, o2, o3, o4, o5, o6, o7 )
+      Mux8Way16(address, o0, o1, o2, o3, o4, o5, o6, o7)
     )
   }
 
-  def RAM64(load: Boolean,
-            in: Byte16,
-            address: Word[_6, Boolean]
+  val RAM8Init = Vector.fill(8)(Null)
+
+  def RAM64(
+    load: Boolean,
+    in: Byte16,
+    address: Word[_6, Boolean]
   ): State[Vector[Vector[Byte16]], Byte16] = State { s =>
-    val selFirst = Word[ _3, Carry ]( address.bits.take( 3 ) )
-    val selSecond = Word[ _3, Carry ]( address.bits.takeRight( 3 ) )
+    val selFirst = Word[_3, Carry](address.bits.take(3))
+    val selSecond = Word[_3, Carry](address.bits.takeRight(3))
     val (l0, l1, l2, l3, l4, l5, l6, l7) = DMux8Way(selSecond, load)
     val (ns0, o0) = RAM8(l0, in, selFirst).run(s(0))
     val (ns1, o1) = RAM8(l1, in, selFirst).run(s(1))
@@ -92,17 +96,20 @@ object Memory {
     val (ns6, o6) = RAM8(l6, in, selFirst).run(s(6))
     val (ns7, o7) = RAM8(l7, in, selFirst).run(s(7))
     (
-      Vector( ns0, ns1, ns2, ns3, ns4, ns5, ns6, ns7 ),
-      Mux8Way16( selSecond, o0, o1, o2, o3, o4, o5, o6, o7 )
+      Vector(ns0, ns1, ns2, ns3, ns4, ns5, ns6, ns7),
+      Mux8Way16(selSecond, o0, o1, o2, o3, o4, o5, o6, o7)
     )
   }
 
-  def RAM512(load: Boolean,
-             in: Byte16,
-             address: Word[_9, Boolean]
+  val RAM64Init = Vector.fill(8)(Vector.fill(8)(Null))
+
+  def RAM512(
+    load: Boolean,
+    in: Byte16,
+    address: Word[_9, Boolean]
   ): State[Vector[Vector[Vector[Byte16]]], Byte16] = State { s =>
-    val selFirst = Word[ _6, Carry ]( address.bits.take( 6 ) )
-    val selSecond = Word[ _3, Carry ]( address.bits.takeRight( 3 ) )
+    val selFirst = Word[_6, Carry](address.bits.take(6))
+    val selSecond = Word[_3, Carry](address.bits.takeRight(3))
     val (l0, l1, l2, l3, l4, l5, l6, l7) = DMux8Way(selSecond, load)
     val (ns0, o0) = RAM64(l0, in, selFirst).run(s(0))
     val (ns1, o1) = RAM64(l1, in, selFirst).run(s(1))
@@ -113,9 +120,27 @@ object Memory {
     val (ns6, o6) = RAM64(l6, in, selFirst).run(s(6))
     val (ns7, o7) = RAM64(l7, in, selFirst).run(s(7))
     (
-      Vector( ns0, ns1, ns2, ns3, ns4, ns5, ns6, ns7 ),
-      Mux8Way16( selSecond, o0, o1, o2, o3, o4, o5, o6, o7 )
+      Vector(ns0, ns1, ns2, ns3, ns4, ns5, ns6, ns7),
+      Mux8Way16(selSecond, o0, o1, o2, o3, o4, o5, o6, o7)
     )
+  }
+
+  val RAM512Init = Vector.fill(8)(Vector.fill(8)(Vector.fill(8)(Null)))
+
+  def PC(in: Byte16, load: Boolean, inc: Boolean, reset: Boolean): State[Byte16, Byte16] = State { s =>
+    (in, Mux16(
+      reset,
+      Mux16(
+        load,
+        Mux16(
+          inc,
+          s,
+          Inc16(s)
+        ),
+        in
+      ),
+      Word[_16](false)
+    ))
   }
 
 }

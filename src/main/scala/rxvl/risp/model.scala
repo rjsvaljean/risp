@@ -36,21 +36,21 @@ object model {
   ) extends ExprF[A]
 
   implicit object functor extends Functor[ExprF] {
-    def map[ A, B ](
-      fa: ExprF[ A ]
+    def map[A, B](
+      fa: ExprF[A]
     )(
-      f: ( A ) => B
-    ): ExprF[ B ] = fa match {
-      case NumberF( i ) => NumberF(i)
-      case BoolF( i ) => BoolF(i)
-      case SymbolF( name ) => SymbolF(name)
-      case IfF( cond, ifTrue, ifFalse ) =>
+      f: (A) => B
+    ): ExprF[B] = fa match {
+      case NumberF(i) => NumberF(i)
+      case BoolF(i) => BoolF(i)
+      case SymbolF(name) => SymbolF(name)
+      case IfF(cond, ifTrue, ifFalse) =>
         IfF(f(cond), f(ifTrue), f(ifFalse))
-      case FnF( parameters, body ) =>
+      case FnF(parameters, body) =>
         FnF(parameters, f(body))
-      case DefF( label, body ) =>
+      case DefF(label, body) =>
         DefF(label, f(body))
-      case AppF( fn, args ) =>
+      case AppF(fn, args) =>
         AppF(fn, args.map(f))
     }
   }
@@ -85,6 +85,5 @@ object model {
       args: Vector[Expr]
     ): Expr = Fix[ExprF](AppF(fn, args))
   }
-
 
 }

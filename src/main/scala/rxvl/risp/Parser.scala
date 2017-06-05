@@ -34,12 +34,12 @@ object Parser {
     })
   }
   def pfp[A](pa: => P[A]): P[ExprF[A]] = NumberFParser |
-      BoolFParser |
-      SymbolFParser |
-      IfExprFParser(pa) |
-      FnFParser(pa) |
-      DefFParser(pa) |
-      AppFParser(pa)
+    BoolFParser |
+    SymbolFParser |
+    IfExprFParser(pa) |
+    FnFParser(pa) |
+    DefFParser(pa) |
+    AppFParser(pa)
 
   def unfixed(pe: => P[Expr]) = pfp[Expr](pe).map(_.fix)
   val parser = scalaz.Scalaz.fix(unfixed)

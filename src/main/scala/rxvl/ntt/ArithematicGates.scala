@@ -20,9 +20,9 @@ object ArithematicGates {
     b: Boolean,
     c: Boolean
   ): (Carry, Sum) = {
-    val (carry1, sum1) = HalfAdder( a, b )
-    val (carry2, sum2) = HalfAdder( c, sum1)
-    (Or( carry2, carry1), sum2)
+    val (carry1, sum1) = HalfAdder(a, b)
+    val (carry2, sum2) = HalfAdder(c, sum1)
+    (Or(carry2, carry1), sum2)
   }
 
   def Add16(
@@ -39,7 +39,6 @@ object ArithematicGates {
   def Inc16(in: Word[_16, Boolean]): Word[_16, Boolean] =
     Add16(in, toBin(1))
 
-
   def showAdderTruthTables = {
     RunGates.show(
       GateHelpers.truthTable(HalfAdder _)
@@ -55,8 +54,8 @@ object ArithematicGates {
   def toBin(i: Int): Word[_16, Boolean] = {
     def bin(j: Int): Stream[Boolean] = {
       val x = j / 2
-      val remainder = j - ( x * 2 )
-      if (j == j/2) Stream.empty
+      val remainder = j - (x * 2)
+      if (j == j / 2) Stream.empty
       else (if (remainder == 1) true else false) #:: bin(x)
     }
     val n = if (i < 0) Math.pow(2, 16).toInt - Math.abs(i) else i
@@ -71,8 +70,8 @@ object ArithematicGates {
     )
   }
   def fromBin(in: Word[_16, Boolean]): Int = {
-    val unsigned = in.foldRight( (0, 0) ) {
-      case (true, (pos, acc)) => (pos + 1, acc + Math.pow( 2, pos ).toInt)
+    val unsigned = in.foldRight((0, 0)) {
+      case (true, (pos, acc)) => (pos + 1, acc + Math.pow(2, pos).toInt)
       case (false, (pos, acc)) => (pos + 1, acc)
     }._2
     if (unsigned > Math.pow(2, 15))
@@ -80,8 +79,8 @@ object ArithematicGates {
     else unsigned
   }
   def fromBin(in: Vector[Boolean]): Int = {
-    in.foldRight( (0, 0) ) {
-      case (true, (pos, acc)) => (pos + 1, acc + Math.pow( 2, pos ).toInt)
+    in.foldRight((0, 0)) {
+      case (true, (pos, acc)) => (pos + 1, acc + Math.pow(2, pos).toInt)
       case (false, (pos, acc)) => (pos + 1, acc)
     }._2
   }

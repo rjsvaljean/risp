@@ -12,16 +12,16 @@ object ALU {
   // File name: projects/02/ALU.hdl
 
   /**
-    * The ALU. Computes one of the following functions:
-    * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
-    * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs,
-    * according to 6 input bits denoted zx,nx,zy,ny,f,no.
-    * The bit-combinations that yield each function are
-    * documented in the book. In addition, the ALU
-    * computes two 1-bit outputs: if the ALU output
-    * is 0, zr is set to 1; otherwise zr is set to 0;
-    * If out<0, ng is set to 1; otherwise ng is set to 0.
-    */
+   * The ALU. Computes one of the following functions:
+   * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+   * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs,
+   * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+   * The bit-combinations that yield each function are
+   * documented in the book. In addition, the ALU
+   * computes two 1-bit outputs: if the ALU output
+   * is 0, zr is set to 1; otherwise zr is set to 0;
+   * If out<0, ng is set to 1; otherwise ng is set to 0.
+   */
 
   // Implementation: the ALU manipulates the x and y
   // inputs and then operates on the resulting values,
@@ -32,8 +32,6 @@ object ALU {
   // if (ny==1) set y = ~y       // bitwise "not"
   // if (f==1)  set out = x + y  if (f==0)  set out = x & y
   // if (no==1) set out = ~out   // bitwise "not"
-
-
 
   import ArithematicGates._
   import Memory.Byte16
@@ -68,7 +66,7 @@ object ALU {
     val notxy = Not16(xy)
     val out = Mux16(no, xy, notxy)
 
-    val (first, second) = out.bits.splitAt(out.length/2)
+    val (first, second) = out.bits.splitAt(out.length / 2)
     val zr = Or(
       Or8Way(Word[_8, Boolean](first)),
       Or8Way(Word[_8, Boolean](second))
@@ -98,40 +96,38 @@ object ALU {
   case object AndOp extends Op
   case object OrOp extends Op
 
-
-  def test( op: Op, x: Byte16, y: Byte16 ): Byte16 = {
-//    println(x)
-//    println(y)
+  def test(op: Op, x: Byte16, y: Byte16): Byte16 = {
+    //    println(x)
+    //    println(y)
     val (out, _, _) = op match {
-      case Zero =>     apply( x, y, zx = true, nx = false, zy = true, ny = false, f = true, no = false )
-      case One =>      apply( x, y, zx = true, nx = true, zy = true, ny = true, f = true, no = true )
-      case MinusOne => apply( x, y, zx = true, nx = true, zy = true, ny = false, f = true, no = false )
-      case JustX =>    apply( x, y, zx = false, nx = false, zy = true, ny = true, f = false, no = false )
-      case JustY =>    apply( x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = false )
-      case JustNotX => apply( x, y, zx = false, nx = false, zy = true, ny = false, f = true, no = true )
-      case JustNotY => apply( x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = true )
-      case JustNegX => apply( x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = true )
-      case JustNegY => apply( x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = true )
-      case IncX =>     apply( x, y, zx = false, nx = true, zy = true, ny = true, f = true, no = true )
-      case IncY =>     apply( x, y, zx = true, nx = true, zy = false, ny = true, f = true, no = true )
-      case DecX =>     apply( x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = false )
-      case DecY =>     apply( x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = false )
-      case Plus =>     apply( x, y, zx = false, nx = false, zy = false, ny = false, f = true, no = false )
-      case XMinusY =>  apply( x, y, zx = false, nx = true, zy = false, ny = false, f = true, no = true )
-      case YMinusX =>  apply( x, y, zx = false, nx = false, zy = false, ny = true, f = true, no = true )
-      case AndOp =>    apply( x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false )
-      case OrOp =>     apply( x, y, zx = false, nx = true, zy = false, ny = true, f = false, no = true )
+      case Zero => apply(x, y, zx = true, nx = false, zy = true, ny = false, f = true, no = false)
+      case One => apply(x, y, zx = true, nx = true, zy = true, ny = true, f = true, no = true)
+      case MinusOne => apply(x, y, zx = true, nx = true, zy = true, ny = false, f = true, no = false)
+      case JustX => apply(x, y, zx = false, nx = false, zy = true, ny = true, f = false, no = false)
+      case JustY => apply(x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = false)
+      case JustNotX => apply(x, y, zx = false, nx = false, zy = true, ny = false, f = true, no = true)
+      case JustNotY => apply(x, y, zx = true, nx = true, zy = false, ny = false, f = false, no = true)
+      case JustNegX => apply(x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = true)
+      case JustNegY => apply(x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = true)
+      case IncX => apply(x, y, zx = false, nx = true, zy = true, ny = true, f = true, no = true)
+      case IncY => apply(x, y, zx = true, nx = true, zy = false, ny = true, f = true, no = true)
+      case DecX => apply(x, y, zx = false, nx = false, zy = true, ny = true, f = true, no = false)
+      case DecY => apply(x, y, zx = true, nx = true, zy = false, ny = false, f = true, no = false)
+      case Plus => apply(x, y, zx = false, nx = false, zy = false, ny = false, f = true, no = false)
+      case XMinusY => apply(x, y, zx = false, nx = true, zy = false, ny = false, f = true, no = true)
+      case YMinusX => apply(x, y, zx = false, nx = false, zy = false, ny = true, f = true, no = true)
+      case AndOp => apply(x, y, zx = false, nx = false, zy = false, ny = false, f = false, no = false)
+      case OrOp => apply(x, y, zx = false, nx = true, zy = false, ny = true, f = false, no = true)
     }
-//    println(Vector.fill(16)('-').mkString)
-//    println(out)
+    //    println(Vector.fill(16)('-').mkString)
+    //    println(out)
     out
   }
 
-  def testB(op: Op)( xStr: String, yStr: String ): String =
-    test( op, toBin( xStr ), toBin( yStr ) ).toString
+  def testB(op: Op)(xStr: String, yStr: String): String =
+    test(op, toBin(xStr), toBin(yStr)).toString
 
   def testD(op: Op)(xInt: Int, yInt: Int): Int =
-    fromBin( test( op, toBin( xInt ), toBin( yInt ) ) )
-
+    fromBin(test(op, toBin(xInt), toBin(yInt)))
 
 }

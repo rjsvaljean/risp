@@ -2,7 +2,7 @@ package rxvl.risp
 
 package rjs
 
-import scalaz.{Traverse, Applicative, Monoid, State, Functor}
+import scalaz.{ Traverse, Applicative, Monoid, State, Functor }
 
 sealed trait AST[+A]
 
@@ -28,16 +28,17 @@ object AST {
 
   implicit val traversable: Traverse[AST] = new Traverse[AST] {
     def traverseImpl[G[_], A, B](
-                                  fa: AST[A]
-                                )(
-                                  f: (A) => G[B]
-                                )(
-                                  implicit ap: Applicative[G]
-                                ): G[AST[B]] = {
+      fa: AST[A]
+    )(
+      f: (A) => G[B]
+    )(
+      implicit
+      ap: Applicative[G]
+    ): G[AST[B]] = {
       fa match {
-        case n@ANumber(_) => ap.pure(n)
-        case s@AString(_) => ap.pure(s)
-        case id@AIdent(_) => ap.pure(id)
+        case n @ ANumber(_) => ap.pure(n)
+        case s @ AString(_) => ap.pure(s)
+        case id @ AIdent(_) => ap.pure(id)
         case AApply(abs, appliedTo) =>
           ap.apply2(f(abs), f(appliedTo))(AApply(_, _))
         case ALambda(arg, lam) =>
@@ -73,10 +74,11 @@ object TypeResult {
       TypeResult(
         constraints = x.constraints ::: y.constraints,
         assumptions = {
-          x.assumptions.foldLeft(y.assumptions) { case (acc, (k, vs)) =>
+        x.assumptions.foldLeft(y.assumptions) {
+          case (acc, (k, vs)) =>
             acc + (k -> acc.get(k).fold(vs)(_ ::: vs))
-          }
         }
+      }
       )
   }
 }
@@ -88,7 +90,7 @@ object TypeCheck {
 
 }
 
-case class CoFree[S[_] : Functor, A](head: A, tail: S[CoFree[S, A]]) {
+case class CoFree[S[_]: Functor, A](head: A, tail: S[CoFree[S, A]]) {
   def functor = Functor[S]
 
   final def extract: A = head
@@ -111,20 +113,21 @@ case class CoFree[S[_] : Functor, A](head: A, tail: S[CoFree[S, A]]) {
 }
 
 object CoFree {
-  def cofreeMu[F[_] : Functor](muf: Mu[F]): CoFree[F, Unit] = {
+  def cofreeMu[F[_]: Functor](muf: Mu[F]): CoFree[F, Unit] = {
     val Mu(f) = muf
     CoFree[F, Unit]((), Functor[F].map(f)(cofreeMu(_)(Functor[F])))
   }
 
-  implicit def traversable[S[_] : Traverse]: Traverse[({type l[a] = CoFree[S, a]})#l] =
-    new Traverse[({type l[a] = CoFree[S, a]})#l] {
+  implicit def traversable[S[_]: Traverse]: Traverse[({ type l[a] = CoFree[S, a] })#l] =
+    new Traverse[({ type l[a] = CoFree[S, a] })#l] {
       def traverseImpl[G[_], A, B](
-                                    fa: CoFree[S, A]
-                                  )(
-                                    f: (A) => G[B]
-                                  )(
-                                    implicit ap: Applicative[G]
-                                  ): G[CoFree[S, B]] = {
+        fa: CoFree[S, A]
+      )(
+        f: (A) => G[B]
+      )(
+        implicit
+        ap: Applicative[G]
+      ): G[CoFree[S, B]] = {
         val ga: G[S[CoFree[S, B]]] = Traverse[S].traverse(fa.tail)(traverse(_)(f))
         val gb: G[B] = f(fa.head)
         ap.apply2(gb, ga)(CoFree[S, B])
@@ -148,7 +151,6 @@ object Blah {
       v <- State.gets((_: TypeState[T, M]).varId)
       _ <- State.modify((ts: TypeState[T, M]) => ts.copy(varId = ts.varId + 1))
     } yield TVar(v)
-
 
   def memoizedTC[C](f: C => TypeCheck.TYPE[C], c: C): TypeCheck.TYPE[C] = {
     def memoize: State[TypeState[C, (Type, TypeResult)], (Type, TypeResult)] = for {
@@ -190,11 +192,8 @@ object Blah {
   def attribute(c: CoFree[AST, Unit]): CoFree[AST, (Type, TypeResult)] = {
     val initial = TypeState[CoFree[AST, Unit], (Type, TypeResult)](memo = Map(), varId = 0)
 
-    Traverse[({type l[a] = CoFree[AST, a]})#l].
-      sequence[
-      ({type l[a] = State[TypeState[CoFree[AST, Unit], (Type, TypeResult)], a]})#l,
-      (Type, TypeResult)
-      ](c.extend(memoizedTC[CoFree[AST, Unit]](generateConstraints, _))).
+    Traverse[({ type l[a] = CoFree[AST, a] })#l].
+      sequence[({ type l[a] = State[TypeState[CoFree[AST, Unit], (Type, TypeResult)], a] })#l, (Type, TypeResult)](c.extend(memoizedTC[CoFree[AST, Unit]](generateConstraints, _))).
       run(initial).
       _2
   }
@@ -202,18 +201,17 @@ object Blah {
   val solveConstraints: List[Constraint] => Option[Map[Int, Type]] = _.foldLeft(
     Option(Map[Int, Type]())
   ) { (b: Option[Map[Int, Type]], a: Constraint) =>
-    def solve(maybeSubs: Option[Map[Int, Type]], const: Constraint) = {
-      const match {
-        case EqualityConstraint(_a, _b) => for {
-          subs <- maybeSubs
-          t <- mostGeneralUnifier(substitute(subs, _a), substitute(subs, _b))
-        } yield t
+      def solve(maybeSubs: Option[Map[Int, Type]], const: Constraint) = {
+        const match {
+          case EqualityConstraint(_a, _b) => for {
+            subs <- maybeSubs
+            t <- mostGeneralUnifier(substitute(subs, _a), substitute(subs, _b))
+          } yield t
+        }
       }
+
+      scalaz.std.option.optionInstance.apply2(solve(b, a), b)(_ ++ _)
     }
-
-    scalaz.std.option.optionInstance.apply2(solve(b, a), b)(_ ++ _)
-  }
-
 
   private def mostGeneralUnifier(t1: Type, t2: Type): Option[Map[Int, Type]] = {
     (t1, t2) match {
@@ -230,7 +228,7 @@ object Blah {
   }
 
   private def substitute(m: Map[Int, Type], t: Type): Type = (m, t) match {
-    case (subs, v@TVar(i)) => subs.get(i).fold(v: Type)(substitute(subs, _))
+    case (subs, v @ TVar(i)) => subs.get(i).fold(v: Type)(substitute(subs, _))
     case (subs, TLambda(a, b)) => TLambda(substitute(subs, a), substitute(subs, b))
     case (_, t) => t
   }
