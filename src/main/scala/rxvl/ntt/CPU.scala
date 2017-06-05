@@ -16,29 +16,31 @@ object CPU {
     out: Address
   ) extends Op
 
-  type CPUState[A] = State[RAMState, A]
+  type CPUState[A] = State[Vector[Vector[Vector[Byte16]]], A]
 
   val run: Op => CPUState[Unit] = {
-    case Put(addr, value) => RAM(load = true, value, addr).map(_ => ())
+    case Put(addr, value) => RAM512(load = true, value, addr).map(_ => ())
     case Get(addr) =>
-      RAM(load = false, Null, addr).map(i => println(fromBin(i)))
+      RAM512(load = false, Null, addr).map(i => println(fromBin(i)))
     case Calculate(op, x, y, addr) =>
       Applicative[CPUState].apply2(
-        RAM(load = false, Null, x),
-        RAM(load = false, Null, y)
+        RAM512(load = false, Null, x),
+        RAM512(load = false, Null, y)
       )(ALU.test(op, _, _)).flatMap(o =>
-        RAM(load = true, o, addr).map(_ => ())
+        RAM512(load = true, o, addr).map(_ => ())
       )
 
   }
 
-  def runScript(script: Seq[Op]): Unit =
-    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(RAMState())._2
+  val initRAMState = Vector.fill(8)(Vector.fill(8)(Vector.fill(8)(Null)))
 
-  def test = runScript(Seq(
-    Put(addr1, thirtyTwo),
-    Put(addr2, fifteen),
-    Calculate(ALU.Plus, addr1, addr2, addr3),
-    Get(addr3)
-  ))
+  def runScript(script: Seq[Op]): Unit =
+    script.map(run).reduce((s1, s2) => s1.flatMap(_ => s2)).run(initRAMState)._2
+
+//  def test = runScript(Seq(
+//    Put(addr1, thirtyTwo),
+//    Put(addr2, fifteen),
+//    Calculate(ALU.Plus, addr1, addr2, addr3),
+//    Get(addr3)
+//  ))
 }

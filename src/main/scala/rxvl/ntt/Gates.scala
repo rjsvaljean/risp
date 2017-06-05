@@ -3,11 +3,14 @@ package rxvl.ntt
 import shapeless.Nat
 import shapeless.nat.{_16, _2, _3, _8}
 import shapeless.ops.nat.ToInt
+
 import scalaz._
 import Scalaz._
+import scala.collection.immutable.Seq
 
 
 case class Word[Size <: Nat : ToInt, A](bits: Vector[A]) {
+  def apply(i: Int): A = bits(i)
   val size: Int = ToInt[ Size ].apply()
   require(size == bits.size)
 
@@ -97,8 +100,8 @@ object Gates {
   def Or16( a: Word[_16, Boolean], b: Word[_16, Boolean] ): Word[_16, Boolean] =
     a.fzip(b).map((Or _).tupled)
 
-  def Mux16( sel: Word[_16, Boolean], a: Word[_16, Boolean], b: Word[_16, Boolean] ): Word[_16, Boolean] =
-    sel.fzip(a).fzip(b).map {case ((_sel, _a), _b) => Mux(_sel, _a, _b) }
+  def Mux16( sel: Boolean, a: Word[_16, Boolean], b: Word[_16, Boolean] ): Word[_16, Boolean] =
+    a.fzip(b).map {case (_a, _b) => Mux(sel, _a, _b) }
 
   def Or8Way( in: Word[_8, Boolean] ): Boolean = in.bits.reduce(Or)
 
@@ -111,13 +114,7 @@ object Gates {
   ): Word[_16, Boolean] = {
     val Vector(sel1, sel2) = sel.bits
     Word[_16](b = And(sel1, sel2))
-    def toWord(b: Boolean) = Word[_16](b)
-    Vector(
-      And16(toWord(And(    sel1 ,     sel2) ), in4),
-      And16(toWord(And(    sel1 , Not(sel2))), in3),
-      And16(toWord(And(Not(sel1),     sel2) ), in2),
-      And16(toWord(And(Not(sel1), Not(sel2))), in1)
-    ).reduce(Or16)
+    Mux16(sel1, Mux16(sel2, in1, in2), Mux16(sel2, in3, in4))
   }
 
   def Mux8Way16(
@@ -132,17 +129,12 @@ object Gates {
     in8: Word[_16, Boolean]
   ): Word[_16, Boolean] = {
     val Vector( sel1, sel2, sel3 ) = sel.bits
-    def toWord(b: Boolean) = Word[_16](b)
-    Vector(
-      And16(toWord(And(And(    sel1 ,     sel2) ,     sel3) ), in8),
-      And16(toWord(And(And(    sel1 , Not(sel2)),     sel3) ), in7),
-      And16(toWord(And(And(Not(sel1),     sel2) ,     sel3) ), in6),
-      And16(toWord(And(And(Not(sel1), Not(sel2)),     sel3) ), in5),
-      And16(toWord(And(And(Not(sel1), Not(sel2)), Not(sel3))), in4),
-      And16(toWord(And(And(Not(sel1), Not(sel2)), Not(sel3))), in3),
-      And16(toWord(And(And(Not(sel1), Not(sel2)), Not(sel3))), in2),
-      And16(toWord(And(And(Not(sel1), Not(sel2)), Not(sel3))), in1)
-    ).reduce(Or16)
+    val sel23 = Word[_2, Boolean](Vector(sel2, sel3))
+    Mux16(
+      sel1,
+      Mux4Way16(sel23, in1, in2, in3, in4),
+      Mux4Way16(sel23, in5, in6, in7, in8)
+    )
   }
 
   def DMux4Way(
@@ -236,7 +228,7 @@ object GateHelpers {
       .map(ins => ev2(ins) -> ev5(ev1(f)(ins)).toList)
   }
 
-  private def gateInputs(n: Int) = {
+  def gateInputs(n: Int): List[List[Boolean]] = {
     val ins = List( true, false )
     List.fill( n - 1 )( ins )
       .foldLeft( ins.map( List( _ ) ) ) { ( acc: List[ List[ Boolean ] ], in: List[ Boolean ] ) =>

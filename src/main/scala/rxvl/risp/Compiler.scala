@@ -4,7 +4,6 @@ object Compiler {
 
 
   import matryoshka.{Algebra, Recursive}
-  import rxvl.risp.Evaluator.EvalResult
   import rxvl.risp.model.{Expr, ExprF}
   import rxvl.ntt.CPU
   import rxvl.ntt.Word
@@ -15,17 +14,13 @@ object Compiler {
   import rxvl.risp.model._
 
   import scalaz.State
-  import shapeless.nat.{_8, _16}
+  import shapeless.nat.{_9, _16}
 
   type Memo[T] = State[Map[String, Int], T]
 
-  val reg1: Address = Word[_8, Boolean](Vector.fill(8)(true).dropRight(2) ++ Vector(true, true))
-  val reg2: Address = Word[_8, Boolean](Vector.fill(8)(true).dropRight(2) ++ Vector(true, false))
-  val reg3: Address = Word[_8, Boolean](Vector.fill(8)(true).dropRight(2) ++ Vector(false, true))
-  val reg4: Address = Word[_8, Boolean](Vector.fill(8)(true).dropRight(2) ++ Vector(false, false))
+  val reg1: Address = Word[_9, Boolean](Vector.fill(9)(true).dropRight(2) ++ Vector(true, true))
 
   def PutOut(i: Int) = CPU.Put(reg1, toBin(i))
-  def PutCond(b: Boolean) = CPU.Put(reg2, Word[_16](b))
 
   case class CompilerState(
     private val symbol: Map[String, Address] = Map()

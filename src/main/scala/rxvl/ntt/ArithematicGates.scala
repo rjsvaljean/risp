@@ -79,6 +79,12 @@ object ArithematicGates {
       unsigned - Math.pow(2, 16).toInt
     else unsigned
   }
+  def fromBin(in: Vector[Boolean]): Int = {
+    in.foldRight( (0, 0) ) {
+      case (true, (pos, acc)) => (pos + 1, acc + Math.pow( 2, pos ).toInt)
+      case (false, (pos, acc)) => (pos + 1, acc)
+    }._2
+  }
 
   def testBin(n: Int) = fromBin(toBin(n))
 

@@ -53,20 +53,20 @@ object ALU {
     no: Boolean // if (no==1) set out = ~out
   ): (Out, Zero, Negative) = {
     // if (out==0) zr = 1 if (out<0) set ng = 1
-    val x1 = Mux16(Word[_16](zx), x, Word[_16](false))
-    val y1 = Mux16(Word[_16](zy), y, Word[_16](false))
+    val x1 = Mux16(zx, x, Word[_16](false))
+    val y1 = Mux16(zy, y, Word[_16](false))
 
     val notx1 = Not16(x1)
-    val x2 = Mux16(Word[_16](nx), x1, notx1)
+    val x2 = Mux16(nx, x1, notx1)
     val noty1 = Not16(y1)
-    val y2 = Mux16(Word[_16](ny), y1, noty1)
+    val y2 = Mux16(ny, y1, noty1)
 
     val xandy = And16(x2, y2)
     val xplusy = Add16(x2, y2)
-    val xy = Mux16(Word[_16](f), xandy, xplusy)
+    val xy = Mux16(f, xandy, xplusy)
 
     val notxy = Not16(xy)
-    val out = Mux16(Word[_16](no), xy, notxy)
+    val out = Mux16(no, xy, notxy)
 
     val (first, second) = out.bits.splitAt(out.length/2)
     val zr = Or(
